@@ -1,88 +1,88 @@
-from django.shortcuts import render
+from django.shortcuts import render, get_object_or_404, redirect
+from django.http import HttpResponse
+from django.views import View
+from django.utils import timezone
+from django.urls import reverse
 
-from django.http import HttpResponse, Http404
 from .models import Pergunta, Resposta
 
-from django.views import View
-
-from django.utils import timezone
-from django.shortcuts import redirect
-from django.urls import reverse
 
 class MainView(View):
     def get(self, request):
-        lista_ultimas_questoes = Pergunta.objects.order_by("-data_criacao")
-        contexto = {'perguntas' : lista_ultimas_questoes}
+        perguntas = Pergunta.objects.order_by("-data_criacao")
+        contexto = {'perguntas': perguntas}
         return render(request, 'forum/index.html', contexto)
+
 
 class PerguntaView(View):
     def get(self, request, pergunta_id):
-        try:
-            pergunta = Pergunta.objects.get(pk=pergunta_id)
-        except Pergunta.DoesNotExist:
-            raise Http404("Pergunta inexistente")
-        contexto = {'pergunta' : pergunta}
+        pergunta = get_object_or_404(Pergunta, pk=pergunta_id)
+        contexto = {'pergunta': pergunta}
         return render(request, 'forum/detalhe.html', contexto)
+
 
 class VotoView(View):
     def get(self, request, resposta_id):
-        try:
-            resposta = Resposta.objects.get(pk=resposta_id)
-        except Resposta.DoesNotExist:
-            raise Http404("Resposta inexistente")
-        return HttpResponse(str(resposta) + "; votos: " + str(resposta.votos))
+        resposta = get_object_or_404(Resposta, pk=resposta_id)
+        return HttpResponse(f"{resposta}; votos: {resposta.votos}")
 
     def post(self, request, resposta_id):
-        try:
-            resposta = Resposta.objects.get(pk=resposta_id)
-        except Resposta.DoesNotExist:
-            raise Http404("Resposta inexistente")
+        resposta = get_object_or_404(Resposta, pk=resposta_id)
         resposta.votos += 1
         resposta.save()
         return redirect(reverse('forum:detalhe', args=[resposta.pergunta.id]))
+
 
 class InserirPerguntaView(View):
     def get(self, request):
         return render(request, 'forum/inserir_pergunta.html')
 
     def post(self, request):
-        if request.user.is_authenticated:
-            usuario = request.user.username
-        else:
-            usuario = 'anônimo'
-        titulo = request.POST.get('titulo')
-        detalhe = request.POST.get('detalhe')
-        tentativa = request.POST.get('tentativa')
-        data_criacao = timezone.now()
-        
-        pergunta = Pergunta(titulo=titulo, detalhe=detalhe, 
-tentativa=tentativa, 	data_criacao=data_criacao, usuario=usuario)
-        pergunta.save()
+        usuario = request.user.username if request.user.is_authenticated else "anônimo"
+
+        titulo = request.POST.get('titulo', '').strip()
+        detalhe = request.POST.get('detalhe', '').strip()
+        tentativa = request.POST.get('tentativa', '').strip()
+
+        # validação simples
+        if not titulo:
+            return render(request, 'forum/inserir_pergunta.html', {
+                'erro': 'O título não pode estar vazio.'
+            })
+
+        pergunta = Pergunta.objects.create(
+            titulo=titulo,
+            detalhe=detalhe,
+            tentativa=tentativa,
+            usuario=usuario,
+            data_criacao=timezone.now()
+        )
 
         return redirect(reverse('forum:detalhe', args=[pergunta.id]))
 
+
 class InserirRespostaView(View):
     def get(self, request, pergunta_id):
-        try:
-            pergunta = Pergunta.objects.get(pk=pergunta_id)
-        except Pergunta.DoesNotExist:
-            raise Http404("Pergunta inexistente")
-        contexto = {'pergunta' : pergunta}
-        return render(request, 'forum/inserir_resposta.html', contexto)
+        pergunta = get_object_or_404(Pergunta, pk=pergunta_id)
+        return render(request, 'forum/inserir_resposta.html', {'pergunta': pergunta})
 
     def post(self, request, pergunta_id):
-        try:
-            pergunta = Pergunta.objects.get(pk=pergunta_id)
-        except Pergunta.DoesNotExist:
-            raise Http404("Pergunta inexistente")
+        pergunta = get_object_or_404(Pergunta, pk=pergunta_id)
 
-        if request.user.is_authenticated:
-            usuario = request.user.username
-        else:
-            usuario = 'anônimo'
-        texto = request.POST.get('texto')
-        data_criacao = timezone.now()
-        
-        pergunta.resposta_set.create(texto=texto, data_criacao=data_criacao, usuario=usuario)
+        usuario = request.user.username if request.user.is_authenticated else "anônimo"
+        texto = request.POST.get('texto', '').strip()
+
+        # evitar resposta vazia
+        if not texto:
+            return render(request, 'forum/inserir_resposta.html', {
+                'pergunta': pergunta,
+                'erro': "A resposta não pode estar vazia."
+            })
+
+        pergunta.resposta_set.create(
+            texto=texto,
+            usuario=usuario,
+            data_criacao=timezone.now()
+        )
 
         return redirect(reverse('forum:detalhe', args=[pergunta.id]))
