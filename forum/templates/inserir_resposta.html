@@ -1,0 +1,12 @@
+{% extends "forum/detalhe.html" %}
+
+{% block respostas %}
+<h3>Adicionar resposta</h3>
+<form method="post">
+    {% csrf_token %}
+    
+        <textarea rows="6" cols="50" id="texto" name="texto"></textarea>
+    <p>
+    <input type="submit" value="Salvar">
+</form>
+{% endblock %}
