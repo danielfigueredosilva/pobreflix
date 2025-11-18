@@ -1,0 +1,21 @@
+<html>
+<head>
+    <title>Exemplo StackOverflow</title>
+    {% load static %}
+    <link rel="stylesheet" href="{% static 'css/estilo.css' %}">
+</head>
+<body>
+    <header>
+        <h1>Fórum MyStackOverflow</h1>
+        <nav>
+            <a href="{% url 'forum:index' %}">Home</a> | 
+            <a href="{% url 'forum:inserir_pergunta' %}">Criar pergunta</a>
+        </nav>
+    </header>
+
+    <main class="container">
+        {% block content %}
+        {% endblock %}
+    </main>
+</body>
+</html>
