@@ -3,8 +3,36 @@ from django.http import HttpResponse
 from django.views import View
 from django.utils import timezone
 from django.urls import reverse
-
 from .models import Pergunta, Resposta
+
+from rest_framework.views import APIView
+from rest_framework.response import Response
+from rest_framework import status
+from django.contrib.auth.models import User
+from django.contrib.auth.hashers import make_password
+
+class RegisterView(APIView):
+    def post(self, request):
+        email = request.data.get("email")
+        password = request.data.get("password")
+
+        # valida campos
+        if not email or not password:
+            return Response({"error": "Email e senha são obrigatórios"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # verifica se já existe
+        if User.objects.filter(username=email).exists():
+            return Response({"error": "Email já cadastrado"}, status=status.HTTP_400_BAD_REQUEST)
+
+        # cria o usuário usando email como username
+        user = User.objects.create(
+            username=email,
+            email=email,
+            password=make_password(password)  # salva criptografada
+        )
+
+        return Response({"message": "Usuário criado com sucesso!"}, status=status.HTTP_201_CREATED)
+
 
 
 class MainView(View):

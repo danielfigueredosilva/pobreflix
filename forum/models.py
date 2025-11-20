@@ -1,9 +1,8 @@
 from django.db import models
-
-# Create your models here.
-
 import datetime
 from django.utils import timezone
+from django.contrib.auth.models import User # Cadastro de Usuários, model pronto
+
 
 
 class Pergunta(models.Model):
