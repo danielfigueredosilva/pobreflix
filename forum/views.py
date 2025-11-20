@@ -11,28 +11,98 @@ from rest_framework import status
 from django.contrib.auth.models import User
 from django.contrib.auth.hashers import make_password
 
-class RegisterView(APIView):
-    def post(self, request):
-        email = request.data.get("email")
-        password = request.data.get("password")
+import json
+from django.http import JsonResponse
+from django.contrib.auth import authenticate, login, logout
+from django.contrib.auth.models import User
+from django.views.decorators.csrf import csrf_exempt
+from .models import Filme, Cadastro
 
-        # valida campos
-        if not email or not password:
-            return Response({"error": "Email e senha são obrigatórios"}, status=status.HTTP_400_BAD_REQUEST)
 
-        # verifica se já existe
-        if User.objects.filter(username=email).exists():
-            return Response({"error": "Email já cadastrado"}, status=status.HTTP_400_BAD_REQUEST)
+# -------------------
+# REGISTRO DE USUÁRIO
+# -------------------
+@csrf_exempt
+def registrar(request):
+    if request.method != "POST":
+        return JsonResponse({"erro": "Método inválido"}, status=400)
 
-        # cria o usuário usando email como username
-        user = User.objects.create(
-            username=email,
-            email=email,
-            password=make_password(password)  # salva criptografada
-        )
+    data = json.loads(request.body)
+    email = data.get("email")
+    senha = data.get("senha")
 
-        return Response({"message": "Usuário criado com sucesso!"}, status=status.HTTP_201_CREATED)
+    if User.objects.filter(username=email).exists():
+        return JsonResponse({"erro": "Usuário já existe"}, status=400)
 
+    user = User.objects.create_user(username=email, password=senha)
+
+    Cadastro.objects.create(user=user)
+
+    return JsonResponse({"msg": "Usuário cadastrado com sucesso"})
+    
+
+# -------------------
+# LOGIN COM SESSÃO
+# -------------------
+@csrf_exempt
+def fazer_login(request):
+    if request.method != "POST":
+        return JsonResponse({"erro": "Método inválido"}, status=400)
+
+    data = json.loads(request.body)
+    email = data.get("email")
+    senha = data.get("senha")
+
+    user = authenticate(username=email, password=senha)
+
+    if not user:
+        return JsonResponse({"erro": "Credenciais inválidas"}, status=400)
+
+    login(request, user)
+    return JsonResponse({"msg": "Login realizado"})
+    
+
+# -------------------
+# LOGOUT
+# -------------------
+def fazer_logout(request):
+    logout(request)
+    return JsonResponse({"msg": "Logout realizado"})
+
+
+# -------------------
+# LISTAR FILMES
+# -------------------
+def listar_filmes(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"erro": "Não autorizado"}, status=401)
+
+    filmes = list(Filme.objects.all().values())
+    return JsonResponse(filmes, safe=False)
+
+
+# -------------------
+# CRIAR FILME
+# -------------------
+@csrf_exempt
+def criar_filme(request):
+    if not request.user.is_authenticated:
+        return JsonResponse({"erro": "Não autorizado"}, status=401)
+
+    if request.method != "POST":
+        return JsonResponse({"erro": "Método inválido"}, status=400)
+
+    data = json.loads(request.body)
+
+    Filme.objects.create(
+        titulo=data["titulo"],
+        descricao=data["descricao"],
+        poster=data["poster"],
+        data_lancamento=data["data_lancamento"],
+        avaliacao=data["avaliacao"],
+    )
+
+    return JsonResponse({"msg": "Filme criado"})
 
 
 class MainView(View):

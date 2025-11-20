@@ -19,6 +19,6 @@ from django.urls import path, include
 
 
 urlpatterns = [
-    path('admin/', admin.site.urls),
-    path('', include('forum.urls')), #O servidor inicia pelo fórum
+    path("admin/", admin.site.urls),
+    path("", include("forum.urls")),
 ]

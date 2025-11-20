@@ -2,11 +2,17 @@ from django.urls import path
 from . import views
 
 from django.urls import path
-from .views import RegisterView
 
 app_name = 'forum'
 urlpatterns = [
-    path("api/register/", RegisterView.as_view()),
+
+    path("registrar/", views.registrar),
+    path("login/", views.fazer_login),
+    path("logout/", views.fazer_logout),
+    path("filmes/", views.listar_filmes),
+    path("filmes/criar/", views.criar_filme),
+
+
 
     # ex: /forum/
     path("", views.MainView.as_view(), name="index"),
