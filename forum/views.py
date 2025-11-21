@@ -1,4 +1,3 @@
-# forum/views.py
 import json
 from datetime import datetime
 from django.shortcuts import render, get_object_or_404, redirect
@@ -9,13 +8,11 @@ from django.urls import reverse
 from django.views.decorators.csrf import csrf_exempt
 from django.contrib.auth import authenticate, login, logout
 from django.contrib.auth.models import User
-
 from .models import Pergunta, Resposta, Filme, Cadastro
+from .models import Filme
 
 
-# -------------------
 # REGISTRO DE USUÁRIO
-# -------------------
 @csrf_exempt
 def registrar(request):
     if request.method != "POST":
@@ -40,9 +37,7 @@ def registrar(request):
     return JsonResponse({"msg": "Usuário cadastrado com sucesso", "user": user.username})
 
 
-# -------------------
 # LOGIN / LOGOUT
-# -------------------
 @csrf_exempt
 def fazer_login(request):
     if request.method != "POST":
@@ -65,9 +60,7 @@ def fazer_logout(request):
     return JsonResponse({"msg": "Logout realizado"})
 
 
-# -------------------
-# LISTAR FILMES (público)
-# -------------------
+# LISTAR FILMES 
 def listar_filmes(request):
     filmes = Filme.objects.all()
     lista = []
@@ -84,9 +77,7 @@ def listar_filmes(request):
     return JsonResponse(lista, safe=False)
 
 
-# -------------------
-# CRIAR FILME (não exige usuário)
-# -------------------
+# CRIAR FILME
 @csrf_exempt
 def criar_filme(request):
     if request.method != "POST":
@@ -97,7 +88,6 @@ def criar_filme(request):
     except:
         return JsonResponse({"erro": "JSON inválido"}, status=400)
 
-    # parse data
     try:
         data_lanc = datetime.strptime(data.get("data_lancamento", "2000-01-01"), "%Y-%m-%d").date()
     except:
@@ -119,14 +109,8 @@ def criar_filme(request):
 
     return JsonResponse({"msg": "Filme criado com sucesso", "id": filme.id})
 
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-from .models import Filme
 
-from django.views.decorators.csrf import csrf_exempt
-from django.http import JsonResponse
-from .models import Filme
-
+# Apagar filme
 @csrf_exempt
 def apagar_filme(request, filme_id):
     if request.method == 'DELETE':
@@ -141,10 +125,6 @@ def apagar_filme(request, filme_id):
 
 
 
-
-# -------------------
-# VIEWS DO FÓRUM
-# -------------------
 class MainView(View):
     def get(self, request):
         perguntas = Pergunta.objects.order_by("-data_criacao")

@@ -6,7 +6,7 @@ from .models import Pergunta, Resposta, Cadastro, Filme
 
 @admin.register(Cadastro)
 class CadastroAdmin(admin.ModelAdmin):
-    list_display = ("user", "telefone")
+    list_display = ("user", "nome")
 
 @admin.register(Filme)
 class FilmeAdmin(admin.ModelAdmin):
