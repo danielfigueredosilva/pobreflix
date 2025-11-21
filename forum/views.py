@@ -119,6 +119,28 @@ def criar_filme(request):
 
     return JsonResponse({"msg": "Filme criado com sucesso", "id": filme.id})
 
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from .models import Filme
+
+from django.views.decorators.csrf import csrf_exempt
+from django.http import JsonResponse
+from .models import Filme
+
+@csrf_exempt
+def apagar_filme(request, filme_id):
+    if request.method == 'DELETE':
+        try:
+            filme = Filme.objects.get(pk=filme_id)
+            filme.delete()
+            return JsonResponse({'message': 'Filme deletado'})
+        except Filme.DoesNotExist:
+            return JsonResponse({'error': 'Filme não encontrado'}, status=404)
+    return JsonResponse({'error': 'Método não permitido'}, status=405)
+
+
+
+
 
 # -------------------
 # VIEWS DO FÓRUM

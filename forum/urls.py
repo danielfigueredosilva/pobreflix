@@ -10,7 +10,9 @@ urlpatterns = [
     path("login/", views.fazer_login),
     path("logout/", views.fazer_logout),
     path("filmes/", views.listar_filmes, name="listar_filmes"),
-    path("filmes/criar/", views.criar_filme),# tentei fazer, mas falhei mizeravelmente
+    path("filmes/criar/", views.criar_filme),
+    path("filmes/<int:filme_id>/apagar/", views.apagar_filme, name="apagar_filme"),
+
 
 
 
