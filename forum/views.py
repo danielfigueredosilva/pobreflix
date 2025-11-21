@@ -73,18 +73,64 @@ def fazer_logout(request):
 # -------------------
 # LISTAR FILMES
 # -------------------
-def listar_filmes(request):
-    if not request.user.is_authenticated:
-        return JsonResponse({"erro": "Não autorizado"}, status=401)
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from .models import Filme
 
-    filmes = list(Filme.objects.all().values())
-    return JsonResponse(filmes, safe=False)
+from django.http import JsonResponse
+from .models import Filme
+
+def listar_filmes(request):
+    filmes = Filme.objects.all()  # Pega todos os filmes
+    lista = []
+
+    for filme in filmes:
+        lista.append({
+            "id": filme.id,
+            "titulo": filme.titulo,
+            "descricao": filme.descricao,
+            "poster": filme.poster,
+            "data_lancamento": filme.data_lancamento.isoformat(),
+            "avaliacao": filme.avaliacao,
+            "user": filme.user.username if filme.user else None,
+        })
+
+    return JsonResponse(lista, safe=False)
+
+
+# views.py
+from django.http import JsonResponse
+from .models import Filme
+
+def listar_todos_filmes(request):
+    filmes = Filme.objects.all()  # pega todos os filmes, independente do usuário
+    filmes_data = [
+        {
+            "id": f.id,
+            "titulo": f.titulo,
+            "descricao": f.descricao,
+            "poster": f.poster,
+            "data_lancamento": f.data_lancamento,
+            "avaliacao": f.avaliacao,
+        }
+        for f in filmes
+    ]
+    return JsonResponse(filmes_data, safe=False)
 
 
 # -------------------
 # CRIAR FILME
 # -------------------
-@csrf_exempt
+from django.http import JsonResponse
+from django.contrib.auth.decorators import login_required
+from .models import Filme
+import json
+
+from django.views.decorators.csrf import csrf_protect
+from django.utils.decorators import method_decorator
+
+
+@csrf_protect
 def criar_filme(request):
     if not request.user.is_authenticated:
         return JsonResponse({"erro": "Não autorizado"}, status=401)
@@ -94,15 +140,22 @@ def criar_filme(request):
 
     data = json.loads(request.body)
 
-    Filme.objects.create(
+    filme = Filme.objects.create(
         titulo=data["titulo"],
         descricao=data["descricao"],
         poster=data["poster"],
         data_lancamento=data["data_lancamento"],
         avaliacao=data["avaliacao"],
+        user=request.user
     )
 
-    return JsonResponse({"msg": "Filme criado"})
+    return JsonResponse({"msg": "Filme criado com sucesso"})
+
+
+
+
+
+
 
 
 class MainView(View):

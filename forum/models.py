@@ -14,12 +14,13 @@ class Cadastro(models.Model):
 
 
 class Filme(models.Model):
+    user = models.ForeignKey(User, on_delete=models.CASCADE)
     titulo = models.CharField(max_length=200)
     descricao = models.TextField()
     poster = models.URLField()
     data_lancamento = models.DateField()
-    avaliacao = models.DecimalField(max_digits=3, decimal_places=1)
-
+    avaliacao = models.IntegerField()
+    
     def __str__(self):
         return self.titulo
 

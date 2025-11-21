@@ -9,8 +9,8 @@ urlpatterns = [
     path("registrar/", views.registrar),
     path("login/", views.fazer_login),
     path("logout/", views.fazer_logout),
-    path("filmes/", views.listar_filmes),
-    path("filmes/criar/", views.criar_filme),
+    path("filmes/", views.listar_filmes, name="listar_filmes"),
+    path("filmes/criar/", views.criar_filme),# tentei fazer, mas falhei mizeravelmente
 
 
 
