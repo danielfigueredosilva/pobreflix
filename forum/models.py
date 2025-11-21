@@ -14,7 +14,7 @@ class Cadastro(models.Model):
 
 
 class Filme(models.Model):
-    user = models.ForeignKey(User, on_delete=models.CASCADE)
+    user = models.ForeignKey(User, on_delete=models.CASCADE, null=True, blank=True)  # <- alteração
     titulo = models.CharField(max_length=200)
     descricao = models.TextField()
     poster = models.URLField()
